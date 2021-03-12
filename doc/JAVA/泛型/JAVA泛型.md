@@ -1,5 +1,8 @@
 - [1.泛型的定义](#泛型的定义)
-- [2.泛型方法](#泛型方法)
+- [2.我们为什么要使用泛型？](#我们为什么要使用泛型？)
+- [3.泛型的好处](#泛型的好处)
+- [4.泛型类和泛型接口](#泛型类和泛型接口)
+- [5.泛型方法](#泛型方法)
 
 
 # 泛型的定义
@@ -125,7 +128,8 @@ public class Test{
 1. 无论是泛型方法，方法类，还是泛型接口都是<T>来定义泛型，尖括号 <>中的 T 被称作是类型参数，用于指代任何类型。
 
     比如：
-  
+
+  UnKnown class 'E'
   ```java  
   public class Test<K>{
     //E没有定义，肯定会报错"UnKnown class 'E'"
@@ -133,18 +137,84 @@ public class Test{
         return key;
     }
   }
+  ```
+  形参
   
+  ```
   public class Test<T>{
     //不是泛型方法，只是一个普通方法，使用了Test<Number>作为形参而已
     public void getMethod(Test<Number> a){}  
   }
   ```
+  
+  ```java
+public class MyClass {
+    static class Fruit{
+        @Override
+        public String toString() {
+            return "fruit";
+        }
+    }
+
+    static class Apple extends Fruit{
+        @Override
+        public String toString() {
+            return "apple";
+        }
+    }
+
+    static class Person{
+        @Override
+        public String toString() {
+            return "person";
+        }
+    }
+
+    static class Test<T>{
+    
+        //使用了泛型类定一个泛型
+        public void show(T t){
+            System.out.println(t.toString());
+        }
+        
+        //定义了一个新的泛型E
+        public <E> void show_2(E t){
+            System.out.println(t.toString());
+        }
+        
+        //定义了一个新的泛型T，与泛型类定一个T不同，不是同一个泛型
+        public <E> void show_3(E t){
+            System.out.println(t.toString());
+        }
+    }
+
+    public static void main(String[] args) {
+        Apple apple = new Apple();
+        Person person = new Person();
+        
+        //由于Apple是Fruit的子类，所以可以打印
+        Test<Fruit> test = new Test();
+        test.show(apple);
+        
+        //编译器会报错
+        test.show(person);
+        
+        //由于show_2方法本身定义了一个新的泛型，所以可以打印
+        test.show_2(person);
+        
+        //由于show_3方法本身定义了一个新的泛型，所以可以打印
+        test.show_3(person);
+    }
+}
+```
 
 2. 同时不光可以定义一个，<K,V>可也是可以的。
   ```java
   //定义多个泛型
   public class Test<K,V>{}
   ```
+
+# 限定类型变量
 
 
 
