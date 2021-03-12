@@ -5,6 +5,10 @@
 - [5.泛型方法](#泛型方法)
 - [6.限定类型变量](#限定类型变量)
 - [7.泛型中的约束和局限性](#泛型中的约束和局限性)
+- [8.泛型类型的继承规则](#泛型类型的继承规则)
+- [9.通配符类型](#通配符类型)
+- [10.虚拟机是如何实现泛型的](#虚拟机是如何实现泛型的)
+
 
 # 泛型的定义
 参数化类型
@@ -246,7 +250,7 @@ public class Test<T>{
     }
 }
 ```
-* 静态域或者静态方法里不能饮用类型变量
+1. 静态域或者静态方法里不能饮用类型变量
 ```java
 public class Test<T>{
     //不允许，因为在new Test的时候，先执行静态的，之后才是Test构造方法，此时T还没有确定，所以无法在静态域或者静态方法中使用
@@ -262,7 +266,7 @@ public class Test<T>{
     }
 }
 ```
-* 不能用基本类型实例化类型参数
+2. 不能用基本类型实例化类型参数
 ```java
 public class Test<T>{
     public static void main(String[] args) {
@@ -273,8 +277,253 @@ public class Test<T>{
         Test<Double> t = new Test();
     }
 }
+```
 
+3. 不能用instanceof
+```java
+public class Test<T>{
+    public static void main(String[] args) {
+        Test<Double> t = new Test();
+        //不允许
+        if(test instanceof Test<Double>){}
+        //不允许
+        if(test instanceof Test<T>){}
+        //允许
+        if(test instanceof Test){}
+    }
+}
+```
 
+4. 不能实例化参数化类型的数组
+```java
+public class Test<T>{
+    public static void main(String[] args) {
+        //不允许，编译时就会报异常，允许声明数组，但不允许实例化
+        Test<Double>[] t = new Test[10];
+    }
+}
+```
+5. 泛型类不能extend Exception/Throwable
+```java
+public class Test{
+    //不允许，编译时会报异常
+    private class Problem<T> extends Exception{}
+}
+```
 
+6. 不能捕获泛型类对象
+```java
+public class Test{
+    private <T extends Throwable> doWork(T x){
+        try{
+        }
+        //不允许，编译时会报异常
+        catch(T t){
+        }
+    }
+}
 
+public class Test{
+    private <T extends Throwable> doWork(T x) throw T{
+        try{
+        }
+        //允许
+        catch(Throwable t){
+            throw x;
+        }
+    }
+}
+```
+
+# 泛型类型的继承规则
+```java
+public class Test{
+
+    static class Fruit{}
+
+    static class Apple extends Fruit{}
+
+    static class Xxx<T>{}
     
+    public static void main(String[] args) {
+        Xxx<Fruit> fruitXxx = new Xxx<>();
+        Xxx<Apple> appleXxx = new Xxx<>();
+        
+        //没问题
+        Fruit fruit = new Apple();
+        //不允许，Xxx<Fruit>与Xxx<Apple>没有任何关系
+        Xxx<Fruit> xxx = new Xxx<Apple>();
+    
+    }
+}
+
+/*
+    泛型类可以继承或者扩展其他泛型类，例如List和ArrayList
+*/
+public class Test{
+
+    static class Fruit{}
+
+    static class Xxx<T>{}
+    
+    static class ExtendXxx<T> extends Xxx<T>{}
+    
+    public static void main(String[] args) {
+       //没问题
+       Xxx<Fruit> xxx = new ExtendXxx<>();
+    }
+}
+```
+
+
+# 通配符类型
+
+
+有两种使用方式：
+1. ？ extends X  表示类型的上界，类型参数是X的子类
+2. ？ super X  表示类型的下界，类型参数是X的超类
+
+```java
+public class Test{
+
+    static class Fruit{}
+    static class Apple extends Fruit{}
+    static class Orange extends Fruit{}
+    static class Hongfushi extends Apple{}
+    
+    static class MyType<T>{}
+    
+    static void print(MyType<Fruit> myType){}
+    
+    static void printExtends(MyType<? extends Fruit> myType){}
+    
+    static void printSuper(MyType<? super Apple> myType){}
+    
+    public static void main(String[] args) {
+        MyType<Fruit> fruitMyType = new MyType<>();
+        //没问题
+        print(fruitMyType);
+
+        MyType<Apple> appleMyType = new MyType<>();
+        //不允许，类型异常
+        print(appleMyType);
+        
+        //没问题，因为Apple是Fruit的子类
+        printExtends(appleMyType);
+        
+        //没问题,但如果是Hongfushi就不行，因为他不是Apple的超类，而是它的子类
+        printSuper(appleMyType);
+    }
+}
+```
+但是：
+```java
+public class Test{
+
+    static class Fruit{}
+    static class Apple extends Fruit{}
+    static class Hongfushi extends Apple{}
+    static class MyType<T>{
+        private T t;
+
+        public T getT() {
+            return t;
+        }
+
+        public void setT(T t) {
+            this.t = t;
+        }
+    }
+
+    public static void main(String[] args) {
+        Apple apple = new Apple();
+        Fruit fruit = new Fruit();
+
+        MyType<? extends Fruit> extendsType = new MyType<>();
+        
+        //不允许,因为MyType只知道你给我了一个Fruit，但是具体是哪个编译器是不知道的
+        extendsType.setT(apple);
+        
+        //没问题，因为MyType的泛型类型就是Fruit以及其子类，例如之前Fruit f = new Apple();
+        Fruit f = extendsType.getT();
+        
+        MyType<? super Apple> superType = new MyType<>();
+        
+        //没问题
+        superType.setData(new Apple());
+        
+        //没问题，MyType的泛型类型就是Apple以及其超类，setData只允许是Apple以及其子类，
+        //因为编译器可以安全的将Apple的子类转型为Apple，可以理解为Apple hongfushi = new Hongfushi()
+        superType.setData(new Hongfushi());
+        
+        //不允许，MyType的泛型类型就是Apple以及其超类，setData只允许是Apple以及其子类，
+        //但是编译器不能确定传进来的是Apple的哪个超类
+        superType.setData(new Fruit());
+        
+        //因为因为MyType的泛型类型就是Apple以及其超类，而他们的超类不能确定，而能确定的肯定是Object
+        Object o = superType.getData();
+    }
+}
+```
+所以：
+1.  ？ extends X用于安全的访问数据。
+2.  ？ super X用于安全的写入数据(只能是X以及其子类)。
+
+
+# 虚拟机是如何实现泛型的
+类型擦除：
+```java
+//在生成字节码时，T会被泛型擦除成为Object
+public class Test<T>{
+        private T t;
+
+        public T getT() {
+            return t;
+        }
+
+        public void setT(T t) {
+            this.t = t;
+        }
+}
+
+//在生成字节码时，T会被泛型擦除成为ArrayList，也就是说会被擦除成为extends后面的第一个,
+//当在使用Comparable的时候，编译器会在合适的位置插入一个强制转型的代码，比如有t.compareTo方法，
+//会在调用时将t强转为Comparable，(Comparable)t.compareTo
+public class Test<T extends ArrayList&Comparable>{
+        private T t;
+
+        public T getT() {
+            return t;
+        }
+
+        public void setT(T t) {
+            this.t = t;
+        }
+}
+```
+所以JAVA中的泛型由于类型擦除可以说就是伪泛型
+```java
+public class Test{
+     public static void main(String[] args) {
+        Map<String,String> map = new HashMap<>();
+        map.put("test","test");
+        System.out.println(map.get("test"));
+     }
+}
+```
+比如上面的代码编译后用反编译软件查看，会发现map.get("test")变为了(String)map.get("test")
+
+或者如下面代码
+```java
+//直接报错，编译器会报出，因为会有类型擦除，String和Integer都会被擦除为Object，所以有问题
+//但是如果返回类型不同的话，JDK可以编译通过，但是开发工具不行，因为JDK会判断方法名，参数，返回值
+public class Test{
+    static String method(List<String> list){
+        return "list";
+    }
+    static Integer method(List<Integer> list){
+        return 0;
+    } 
+}
+```
+
