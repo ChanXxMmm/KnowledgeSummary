@@ -1,14 +1,15 @@
 - [1.泛型的定义](#泛型的定义)
-- [2.我们为什么要使用泛型？](#我们为什么要使用泛型?)
+- [2.我们为什么要使用泛型？](#我们为什么要使用泛型)
 - [3.泛型的好处](#泛型的好处)
 - [4.泛型类和泛型接口](#泛型类和泛型接口)
 - [5.泛型方法](#泛型方法)
-
+- [6.限定类型变量](#限定类型变量)
+- [7.泛型中的约束和局限性](#泛型中的约束和局限性)
 
 # 泛型的定义
 参数化类型
 
-# 我们为什么要使用泛型?
+# 我们为什么要使用泛型
 以下两种情况就很好的说明了：
 
 * 第一种情况：
@@ -140,7 +141,7 @@ public class Test{
   ```
   * 形参
   
-  ```
+  ```java
   public class Test<T>{
     //不是泛型方法，只是一个普通方法，使用了Test<Number>作为形参而已
     public void getMethod(Test<Number> a){}  
@@ -184,7 +185,7 @@ public class MyClass {
         }
         
         //定义了一个新的泛型T，与泛型类定一个T不同，不是同一个泛型
-        public <E> void show_3(E t){
+        public <T> void show_3(T t){
             System.out.println(t.toString());
         }
     }
@@ -217,5 +218,63 @@ public class MyClass {
 
 # 限定类型变量
 
+先看下面代码
+
+```java
+public static <T> T min(T a,T b){
+        if (a.compareTo(b)>0) return a; else return b;
+}
+```
+此段代码有问题：由于定义的泛型T不知道是什么类型的，所以无法保证他有compareTo方法。
+
+所以为了解决这个问题就有了类型变量的限定
+```java
+//只有继承的父类或者自己实现了Comparable接口才可以
+public static <T extends Comparable> T min(T a,T b){
+        if (a.compareTo(b)>0) return a; else return b;
+}
+```
+写法上<T extends String>也支持多个泛型和extends多个接口或者类，比如<K extends String,V extends ArrayList&Comparable>,这时候类必须写在接口前面且类只能有一个，同时不光可以在泛型方法中使用，还可以在泛型类上使用
+    
+# 泛型中的约束和局限性
+* 不能实例化类型变量
+```java
+public class Test<T>{
+    public void get(){
+        //不允许
+        T t = new T();
+    }
+}
+```
+* 静态域或者静态方法里不能饮用类型变量
+```java
+public class Test<T>{
+    //不允许，因为在new Test的时候，先执行静态的，之后才是Test构造方法，此时T还没有确定，所以无法在静态域或者静态方法中使用
+    private static T instance;
+}
+```
+    但如果静态方法本身是泛型方法就可以
+```java
+public class Test<T>{
+
+    private static <T> T get(){
+        return null;
+    }
+}
+```
+* 不能用基本类型实例化类型参数
+```java
+public class Test<T>{
+    public static void main(String[] args) {
+        //泛型中所有的基本数据类型都不可以，因为它不是个对象
+        Test<double> t = new Test();
+        
+        //只能使用它们的包装类
+        Test<Double> t = new Test();
+    }
+}
 
 
+
+
+    
