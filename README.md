@@ -4,7 +4,7 @@
 ## JAVA相关
  Title | Detail
  --- |---
-基础 | [详情](./doc/JAVA/基础/JAVA基础.md)
+基础 | 
 泛型 | [详情](./doc/JAVA/泛型/JAVA泛型.md)
 注解 |
 反射 |
