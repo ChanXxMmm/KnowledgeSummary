@@ -5,7 +5,7 @@
  Title | Detail
  --- |---
 基础 | [详情](./doc/JAVA/基础/JAVA基础.md)
-泛型 |
+泛型 | [详情](./doc/JAVA/泛型/JAVA泛型.md)
 注解 |
 反射 |
 多线程 |
