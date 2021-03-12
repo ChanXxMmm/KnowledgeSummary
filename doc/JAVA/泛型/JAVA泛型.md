@@ -129,7 +129,7 @@ public class Test{
 
     比如：
 
-  UnKnown class 'E'
+  1.1  UnKnown class 'E'
   ```java  
   public class Test<K>{
     //E没有定义，肯定会报错"UnKnown class 'E'"
@@ -138,7 +138,7 @@ public class Test{
     }
   }
   ```
-  形参
+  1.2 形参
   
   ```
   public class Test<T>{
@@ -146,6 +146,7 @@ public class Test{
     public void getMethod(Test<Number> a){}  
   }
   ```
+  1.3 
   
   ```java
 public class MyClass {
