@@ -1,5 +1,5 @@
 - [1.泛型的定义](#泛型的定义)
-- [2.我们为什么要使用泛型？](#我们为什么要使用泛型？)
+- [2.我们为什么要使用泛型？](#我们为什么要使用泛型?)
 - [3.泛型的好处](#泛型的好处)
 - [4.泛型类和泛型接口](#泛型类和泛型接口)
 - [5.泛型方法](#泛型方法)
@@ -8,7 +8,7 @@
 # 泛型的定义
 参数化类型
 
-# 我们为什么要使用泛型？
+# 我们为什么要使用泛型?
 以下两种情况就很好的说明了：
 
 * 第一种情况：
@@ -129,7 +129,7 @@ public class Test{
 
     比如：
 
-  1.1  UnKnown class 'E'
+  *  UnKnown class 'E'
   ```java  
   public class Test<K>{
     //E没有定义，肯定会报错"UnKnown class 'E'"
@@ -138,7 +138,7 @@ public class Test{
     }
   }
   ```
-  1.2 形参
+  * 形参
   
   ```
   public class Test<T>{
@@ -146,7 +146,7 @@ public class Test{
     public void getMethod(Test<Number> a){}  
   }
   ```
-  1.3 
+  * 其他 
   
   ```java
 public class MyClass {
