@@ -156,3 +156,75 @@ Field[] declaredFields = Test.class.getDeclaredFields();
 public java.lang.String 包名.Test.id
 private int 包名.Test.index
 ```
+
+# Method类
+1. getMethod(方法名，参数数据类型(无参数传null)) 获取公共方法
+```java
+public class Test{
+    public void doSth(int index){}
+}
+打印: Test.class.getMethod("doSth", int.class)
+输出: public void 包名.Test.doSth(int)
+```
+2. getDeclaredMethod(方法名，参数数据类型(无参数传null)) 获取私有方法
+```java
+public class Test{
+    private void doSth(int index){}
+}
+打印: Test.class.getDeclaredMethod("doSth", int.class)
+输出: private void 包名.Test.doSth(int)
+```
+3. invoke(对象名，参数列表(理解为方法名)) 执行方法
+```java
+public class Test{
+   private void doSth(int index){
+       System.out.println("doSth:"+index);
+   }
+}
+Test test = new Test();
+Method method = test.getClass().getDeclaredMethod("doSth", int.class);
+method.setAccessible(true);
+method.invoke(test,23);
+输出: doSth:23
+```
+4. getParameterTypes() 得到参数列表
+```java
+public class Test{
+      private void doSth(int index,String id){}
+}
+Method method = Test.class.getDeclaredMethod("doSth", int.class, String.class);
+Class<?>[] parameterTypes = method.getParameterTypes();
+打印: 遍历parameterTypes
+输出:
+int
+class java.lang.String
+```
+
+5. getDecaledMethods() 得到类的所有方法
+```java
+public class Test{
+    private void doSth(){}
+    public void doSthElse(int i){}
+}
+Method[] declaredMethods = Test.class.getDeclaredMethods();
+打印: 遍历declaredMethods
+输出:
+private void 包名.Test.doSth()
+public void 包名.Test.doSthElse(int)
+```
+6.  getReturnType() 得到方法返回值的数据类型
+```java
+public class Test{
+      private void doSth(int index,String id){}
+}
+Method method = Test.class.getDeclaredMethod("doSth", int.class, String.class);
+打印: method.getReturnType()
+输出:
+void
+```
+# 构造方法
+1. Class对象.getConstructor()得到构造方法
+
+
+2. Class对象.getConstructors()得到所有构造方法
+
