@@ -63,7 +63,7 @@ static class Test extends HashMap{}
 ```
 
 # Field类
-1. getField("属性名") 获取公共属性
+1. getField("属性名") 获取公共属性(自己+父类)
 ```java
 public class Test{
       public int index = 100;
@@ -124,7 +124,7 @@ index.set(test,20);
 输出: 20
 ```
 
-7.getDeclaredField("属性名") 获取属性
+7.getDeclaredField("属性名") 获取属性(只有自己的，不包含父类)
 ```java
 public class Test{
       public int index = 100;
@@ -246,7 +246,68 @@ public 包名.Test(java.lang.String)
 ```
 
 # 实操之通过注解和反射实现findViewById
-。。。。
 
+   初始代码:
+      ```java
+      public class MainActivity extends AppCompatActivity {
+          int i;
+          int m;
+          TextView textView;
+          @Override
+          protected void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              setContentView(R.layout.activity_main);
+          }
+      }
+      ```
+   可以看到就是一个很简单的界面，有一个TextView，id为tv,现在我们要做的就是通过注解和反射自动实现findViewById
+   
+   现在要先做一个工具类
+   1. 可以获取到MainActivity中所有的属性
+      ```java
+      public class InjectUtils {
+        public static void injectView(Activity activity){
+              //通过传进来的Activity，获得其Class对象
+              Class<? extends Activity> aClass = activity.getClass();
+              //通过Class对象获取它的所有属性
+              Field[] fields = aClass.getDeclaredFields();
+              //遍历所有属性通过区分得到TextView
+              for (Field field: fields) {
 
+              }
+       }
+      }
+      
+      ```
+   2. 由于此时无法区分哪个是TextView，所以此时要添加我们自己的注解来区分，首先生成一个自己的注解用来接收View的id
+         ```java
+         @Target(ElementType.FIELD)//该注解只会作用在属性上，也就是我们的view上
+         @Retention(RetentionPolicy.RUNTIME)//只会在运行期间自动实现findViewById
+         public @interface InjectView {
+            //通过int接收view的id，同时使用@IdRes注解来进行限制，只能输入R.id.xxx
+            @IdRes int value();
+         }
+         ```
+         
+   3. 此时给我们需要自动findViewById的控件加上注解
+      ```java
+      @InjectView(R.id.tv)
+      TextView textView;
+      
+      ```
+   4. 此时可以继续补全自动实现工具类
+    ```java
+      public class InjectUtils {
+        public static void injectView(Activity activity){
+              //通过传进来的Activity，获得其Class对象
+              Class<? extends Activity> aClass = activity.getClass();
+              //通过Class对象获取它的所有属性
+              Field[] fields = aClass.getDeclaredFields();
+              //遍历所有属性通过区分得到TextView
+              for (Field field: fields) {
 
+              }
+       }
+      }
+      
+      ```
