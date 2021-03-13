@@ -252,7 +252,7 @@ public 包名.Test(java.lang.String)
       public class MainActivity extends AppCompatActivity {
           int i;
           int m;
-          TextView textView;
+          private TextView textView;
           @Override
           protected void onCreate(Bundle savedInstanceState) {
               super.onCreate(savedInstanceState);
@@ -273,7 +273,7 @@ public 包名.Test(java.lang.String)
               Field[] fields = aClass.getDeclaredFields();
               //遍历所有属性通过区分得到TextView
               for (Field field: fields) {
-
+                  
               }
        }
       }
@@ -292,11 +292,11 @@ public 包名.Test(java.lang.String)
    3. 此时给我们需要自动findViewById的控件加上注解
       ```java
       @InjectView(R.id.tv)
-      TextView textView;
+      private TextView textView;
       
       ```
    4. 此时可以继续补全自动实现工具类
-    ```java
+      ```java
       public class InjectUtils {
         public static void injectView(Activity activity){
               //通过传进来的Activity，获得其Class对象
@@ -305,9 +305,46 @@ public 包名.Test(java.lang.String)
               Field[] fields = aClass.getDeclaredFields();
               //遍历所有属性通过区分得到TextView
               for (Field field: fields) {
+                  if (field.isAnnotationPresent(InjectView.class)){
+                  
+                      //找到使用我们注解的属性，也就是控件
+                      InjectView annotation = field.getAnnotation(InjectView.class);
+                      
+                      //这时候就可以去获取注解参数拿到控件的id
+                      int id = annotation.value();
+                      
+                      //拿到id后通过findViewById拿到View
+                      View view = activity.findViewById(id);
 
+                      //通过反射给到控件的值
+                      field.setAccessible(true);
+                      try {
+                          field.set(activity,view);
+                      } catch (IllegalAccessException e) {
+                          e.printStackTrace();
+                      }
+                  }
               }
+         }
        }
-      }
       
-      ```
+       ```
+  5. 使用
+  ```java
+  public class MainActivity extends AppCompatActivity {
+    @InjectView(R.id.tv)
+    TextView textView;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        //使用我们的工具自动实现findViewById
+        InjectUtils.injectView(this);
+        
+        textView.setText("Hello");
+    }
+  }
+  ```
+
+
