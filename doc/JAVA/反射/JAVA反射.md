@@ -245,7 +245,7 @@ public class Test{
 public 包名.Test()
 public 包名.Test(java.lang.String)
 ```
-# 反射获取泛型真是类型
+# 反射获取泛型真实类型
 
 当我们对一个泛型类进行反射时，需要得到泛型中的真实数据类型，此时需要通过Type体系来完成，它包含一个实现类和四个接口:
 
