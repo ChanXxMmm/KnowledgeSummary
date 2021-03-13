@@ -4,6 +4,7 @@
 - [4.Field类](#Field类)
 - [5.Method类](#Method类)
 - [6.构造方法](#构造方法)
+- [7.实践:通过注解和反射实现findViewById](#实践:通过注解和反射实现findViewById)
 
 
 # 什么是反射
@@ -219,12 +220,29 @@ public class Test{
 }
 Method method = Test.class.getDeclaredMethod("doSth", int.class, String.class);
 打印: method.getReturnType()
-输出:
-void
+输出: void
 ```
 # 构造方法
 1. Class对象.getConstructor()得到构造方法
-
+```java
+public class Test{
+     public Test(){}
+     public Test(String id){}
+}
+打印: Test.class.getConstructor()
+输出: public 包名.Test()
+```
 
 2. Class对象.getConstructors()得到所有构造方法
+```java
+public class Test{
+     public Test(){}
+     public Test(String id){}
+}
+打印: 遍历Test.class.getConstructors()
+输出: 
+public 包名.Test()
+public 包名.Test(java.lang.String)
+```
 
+# 实践:通过注解和反射实现findViewById
