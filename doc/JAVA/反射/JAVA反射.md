@@ -4,7 +4,8 @@
 - [4.Field类](#Field类)
 - [5.Method类](#Method类)
 - [6.构造方法](#构造方法)
-- [7.实操之通过注解和反射实现findViewById](#实操之通过注解和反射实现findViewById)
+- [7.反射获取泛型真实类型](#反射获取泛型真实类型)
+- [8.实操之通过注解和反射实现findViewById](#实操之通过注解和反射实现findViewById)
 
 
 # 什么是反射
@@ -244,6 +245,27 @@ public class Test{
 public 包名.Test()
 public 包名.Test(java.lang.String)
 ```
+# 反射获取泛型真是类型
+
+当我们对一个泛型类进行反射时，需要得到泛型中的真实数据类型，此时需要通过Type体系来完成，它包含一个实现类和四个接口:
+
+1. 实现类就是Class
+
+2. GenericArrayType接口:当需要描述的类型是泛型类的数组时，此接口会作为Type的实现
+
+
+3. ParameterizedType接口:具体的泛型类型，可以获得元数据中泛型签名类型(泛型真实类型)
+
+4. TypeVariable接口:泛型类型变量，可以得到泛型上下限等信息(但是       )
+```java
+
+```
+
+5. WildcardType接口:通配符泛型，获得上下线信息
+
+
+
+
 
 # 实操之通过注解和反射实现findViewById
 
