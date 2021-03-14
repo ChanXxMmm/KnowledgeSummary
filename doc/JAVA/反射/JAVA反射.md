@@ -270,18 +270,20 @@ public 包名.Test(java.lang.String)
 # 实操之通过注解和反射实现findViewById
 
    初始代码:
-      ```java
-      public class MainActivity extends AppCompatActivity {
-          int i;
-          int m;
-          private TextView textView;
-          @Override
-          protected void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              setContentView(R.layout.activity_main);
-          }
+   
+   ```java
+   public class MainActivity extends AppCompatActivity
+      int i;
+      int m;
+      private TextView textView;
+      @Override
+      protected void onCreate(Bundle savedInstanceState) {
+          super.onCreate(savedInstanceState);
+          setContentView(R.layout.activity_main);
       }
-      ```
+   }
+   ```
+   
    可以看到就是一个很简单的界面，有一个TextView，id为tv,现在我们要做的就是通过注解和反射自动实现findViewById
    
    现在要先做一个工具类
