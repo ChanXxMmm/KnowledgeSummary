@@ -6,7 +6,7 @@
 - [6.构造方法](#构造方法)
 - [7.反射获取泛型真实类型](#反射获取泛型真实类型)
 - [8.实操之通过注解和反射实现findViewById](#实操之通过注解和反射实现findViewById)
-
+- [9.实操之通过注解和反射实现getIntent](#实操之通过注解和反射实现getIntent)
 
 # 什么是反射
 
@@ -251,21 +251,169 @@ public 包名.Test(java.lang.String)
 
 1. 实现类就是Class
 
-2. GenericArrayType接口:当需要描述的类型是泛型类的数组时，此接口会作为Type的实现
+2. GenericArrayType接口:当需要描述的类型是泛型类的数组时，此接口会作为Type的实现。它的组成元素是ParameterizedType或TypeVariable类型
+```java
+public class TestType<T> {
+
+    List<String>[] lists;
+
+    public static void main(String[] args) throws Exception {
+        Field f = TestType.class.getDeclaredField("lists");
+        GenericArrayType genericType = (GenericArrayType) f.getGenericType();
+    }
+}
+打印: genericType.getGenericComponentType()  //返回数组的组成对象
+输出: java.util.List<java.lang.String>
+```
 
 
 3. ParameterizedType接口:具体的泛型类型，可以获得元数据中泛型签名类型(泛型真实类型)
-
-4. TypeVariable接口:泛型类型变量，可以得到泛型上下限等信息(但是       )
 ```java
+public class TestType {
+    Map<String, String> map;
 
+    public static void main(String[] args) throws Exception {
+        Field f = TestType.class.getDeclaredField("map");
+        ParameterizedType pType = (ParameterizedType) f.getGenericType();
+    }
+}
+打印: pType.getRawType()  //返回承载该泛型信息的对象
+输出: interface java.util.Map
+
+打印: 遍历pType.getActualTypeArguments()  //返回实际泛型类型列表
+输出: 打印两遍: class java.lang.String
+```
+
+
+4. TypeVariable接口:泛型类型变量，可以得到泛型上下限等信息(但是类型变量在定义的时候只能使用extends进行(多)边界限定, 不能用super)
+```java
+public class TestType <K extends Comparable & Serializable, V> {
+    K key;
+    V value;
+    public static void main(String[] args) throws Exception {
+        // 获取字段的类型
+        Field fk = TestType.class.getDeclaredField("key");
+        Field fv = TestType.class.getDeclaredField("value");
+
+        TypeVariable keyType = (TypeVariable)fk.getGenericType();
+        TypeVariable valueType = (TypeVariable)fv.getGenericType();
+    }
+}
+打印: keyType.getName() 和 valueType.getName()  //获取泛型在源码中定义时的名字
+输出: K 和 V
+
+打印: keyType.getGenericDeclaration()  //获取声明该类型变量的类型
+输出: class com.test.TestType
+
+打印: 遍历keyType.getBounds() 和 遍历valueType.getBounds()  //获取类型变量的上边界
+输出: 
+class com.test.TestType 和 interface java.io.Serializable
+class java.lang.Object // V没明确声明上界的, 默认上界是 Object
 ```
 
 5. WildcardType接口:通配符泛型，获得上下线信息
+```java
+public class TestType {
+    private List<? extends Number> a;  // 上限
+    private List<? super String> b;     //下限
 
+    public static void main(String[] args) throws Exception {
+        Field fieldA = TestType.class.getDeclaredField("a");
+        Field fieldB = TestType.class.getDeclaredField("b");
+        // 先拿到范型类型
+        ParameterizedType pTypeA = (ParameterizedType) fieldA.getGenericType();
+        ParameterizedType pTypeB = (ParameterizedType) fieldB.getGenericType();
+        // 再从范型里拿到通配符类型
+        WildcardType wTypeA = (WildcardType) pTypeA.getActualTypeArguments()[0];
+        WildcardType wTypeB = (WildcardType) pTypeB.getActualTypeArguments()[0];
+    }
+}
+打印: wTypeA.getUpperBounds()[0]
+输出: class java.lang.Number
 
+打印: wTypeB.getLowerBounds()[0]
+输出: class java.lang.String
 
+打印: wTypeA
+输出: ? extends java.lang.Number
+```
+6. 关于日常开发中泛型反射遇到的问题
 
+在我们的实际开发过程中，经常会遇到访问服务器获取结果
+```
+static class Response<T> {
+      T data;
+      int code;
+      String message;
+      @Override
+      public String toString() {
+            return "Response{" +
+                    "data=" + data +
+                    ", code=" + code +
+                    ", message='" + message + '\'' +
+                    '}';
+      }
+
+      public Response(T data, int code, String message) {
+
+          this.data = data;
+          this.code = code;
+          this.message = message;
+      }
+}
+```
+服务器返回的Response中除了状态码code和对应的Message，还有数据，但是数据有多种多样的类型，所以用泛型定义。
+
+此时比如有一个Data实体来作为Response中的data
+```
+static class Data {
+        String result;
+
+        public Data(String result) {
+            this.result = result;
+        }
+
+        @Override
+        public String toString() {
+            return "Data{" +
+                    "result=" + result +
+                    '}';
+        }
+}
+
+Response<Data> dataResponse = new Response(new Data("数据"), 1, "成功");
+Gson gson = new Gson();
+String json = gson.toJson(dataResponse);
+
+//反序列化
+Response<Data> response = gson.fromJson(json, Response.class);
+
+打印: json
+输出: {"data":{"result":"数据"},"code":1,"message":"成功"}
+
+打印: response
+输出: Response{data={result=数据}, code=1, message='成功'}
+```
+此时发现序列化和反序列化都没有什么问题，但是我们希望此时的response中的data是Data，而不是泛型了，我们打印下
+```java
+打印: response.data.getClass()
+输出: 报错！无法数据转换
+```
+那么为什么会报错呢？由于我们定义了response为Data类型，但是gson在反序列化时是不知道的，它只知道我要反序列化一个Response，那么如何解决呢？
+
+Gson内部提供了一个TypeToken
+```java
+Type type = new TypeToken<Response<Data>>(){}.getType();
+Response<Data> response = gson.fromJson(json, type);
+
+打印: type
+输出: 包名.Response<包名.Data>
+打印: response.data.getClass()
+输出: class 包名.Data
+```
+通过上面打印可以看到通过TypeToken，将Response的T转变为了具体的Data，而TypeToken内部的具体实现就是定义了一个匿名内部类，其中通过发射获取到
+TypeToken<Response<Data>>的具体泛型保存到Type中，也就是将Response<Data>保存给Type对象，这个操作就是将T变为了真实的泛型类型，所以Gson
+在反序列化的时候可以准确的知道具体是什么泛型类型。
 
 # 实操之通过注解和反射实现findViewById
 
@@ -371,4 +519,107 @@ public 包名.Test(java.lang.String)
   }
   ```
 
+# 实操之通过注解和反射实现getIntent
+根据上面的思想，我们来通过注解和反射实现自动getIntent，唯一需要注意的就是实现了Parcelable接口的数组
+1. 创建一个注解，用于工具类可以找到
+```java 
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface InjectIntent {
+    String value() default "";
+}
+```
+2. 在目标Activity中添加注解(如果注解中value没有数值，则直接用名字)
+```java
+@InjectIntent
+String name;
 
+@InjectIntent("attr")
+String attr;
+
+@InjectIntent
+int[] array;
+```
+3. 编写工具类
+```java
+public static void injectIntent(Activity activity) {
+
+        Class<? extends Activity> aClass = activity.getClass();
+
+        //获得数据
+        Intent intent = activity.getIntent();
+        Bundle extras = intent.getExtras();
+        if (extras == null) {
+            return;
+        }
+
+        Field[] fields = aClass.getDeclaredFields();
+
+        for (Field field : fields) {
+            //判断属性是否被打上了我们定义的InjectIntent的注解声明
+            if (field.isAnnotationPresent(InjectIntent.class)) {
+                //找到使用我们注解的属性，也就是控件
+                InjectIntent annotation = field.getAnnotation(InjectIntent.class);
+
+                //获取Intent传递参数的Key
+                String key = TextUtils.isEmpty(annotation.value()) ? field.getName() : annotation.value();
+
+
+                if (extras.containsKey(key)) {
+
+                    Object obj = extras.get(key);
+
+                    //对Parcelable类型的数组特殊处理
+                    //获取数组中单个元素类型
+                    Class<?> componentType = field.getType().getComponentType();
+                    //如果是数组并且是Parcelable的子类
+                    if (field.getType().isArray()&& Parcelable.class.isAssignableFrom(componentType)){
+                        Object[] objects = (Object[]) obj;
+                        //将objects数组通过Arrays拷贝到新的数组中,新的数组就是Parcelable类型
+                        //(Class<? extends Object[]>) field.getType() = Parcelable[].class
+                        obj = Arrays.copyOf(objects,objects.length,(Class<? extends Object[]>) field.getType());
+                    }
+
+                    //通过反射给到控件的值
+                    field.setAccessible(true);
+                    try {
+                        field.set(activity, obj);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        }
+    }
+```
+4. 在目标Activity使用
+ ```java
+  public class SecActivity extends AppCompatActivity {
+    @InjectView(R.id.tv)
+    TextView textView;
+    
+    @InjectIntent
+    String name;
+
+    @InjectIntent("attr")
+    String attr;
+
+    @InjectIntent
+    int[] array;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_sec);
+        
+        //使用我们的工具自动实现findViewById
+        InjectUtils.injectView(this);
+        
+        //使用我们的工具自动getIntent
+        InjectUtils.injectIntent(this);
+        
+        textView.setText(name);
+    }
+  }
+  ```
