@@ -212,8 +212,21 @@ class Teacher{
 8. 执行Teacher T2 = new Teacher()，会在堆Eden区中创建一个T2的Teacher对象，同时在栈帧中的局部变量表中有一个T2的引用
 9. 执行set方法: 在栈帧中的操作数栈中不断的入栈出栈
 
-此时JVM的运行时数据区的效果如下图
+此时JVM的运行时数据区的效果如下图所示:
+
 ![image](https://user-images.githubusercontent.com/61224872/111302764-bda33580-868e-11eb-9b12-6b65a8bbaf59.png)
+
+此时我们再通过底层看看JVM的运行时数据区什么样子:
+1. 通过jps查看我们这个进程的id，比如我这个id是59079
+2. 通过内存可视化工具HSDB来查看下: 
+```java
+sudo java -cp ,:/Library/Java/JavaVirtualMachines/jdk1.8.0_261.jdk/Contents/Home/lib/sa-jdi.jar sun.jvm.hotspot.HSDB
+```
+
+
+
+
+
 
 
 
