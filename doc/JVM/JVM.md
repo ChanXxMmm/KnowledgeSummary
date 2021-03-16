@@ -7,6 +7,7 @@
   - [方法区](#方法区)
   - [Java堆](#Java堆)
   - [从底层深入理解运行时数据区](#从底层深入理解运行时数据区)
+- [3.运行时数据区](#运行时数据区)
 
 # JVM与操作系统的关系
 * 什么是JVM
@@ -222,6 +223,29 @@ class Teacher{
 ```java
 sudo java -cp ,:/Library/Java/JavaVirtualMachines/jdk1.8.0_261.jdk/Contents/Home/lib/sa-jdi.jar sun.jvm.hotspot.HSDB
 ```
+启动HSDB后通过attach我们的进程可以看到
+
+![image](https://user-images.githubusercontent.com/61224872/111305656-2f30b300-8692-11eb-8448-e026d5872c98.png)
+
+上面标识了我们的进程中启动了不同的线程，比如main线程，gc线程等，此时去查看main线程中的虚拟机栈信息
+
+![image](https://user-images.githubusercontent.com/61224872/111305910-82a30100-8692-11eb-96e6-e55edf02fbb4.png)
+
+1. 上图中间一列就是内存地址
+2. 我们的main函数还没运行完，表明它的栈帧还在虚拟机栈中，从图中可以看到一行JVMObject.main，说明这个蓝色的就是main栈帧，它会向下延伸一段内存地址，表明这段内存地址都是栈帧
+   这就更加说明了虚拟机栈中的栈帧就是对物理地址的虚拟化
+3. 我们还可以看到上面还有一个栈帧，因为我们在最后调用了一个线程休眠，它就是Thread.sleep方法的栈帧
+4. 我们此时还可以通过这个工具找到我们方法区中的信息，比如搜索我们的全路径，可以找到我们的Teacher类，点进去就可以看到我们创建的T1和T2，再点进去就可以看到他们在的详细信息
+
+![image](https://user-images.githubusercontent.com/61224872/111307778-de6e8980-8694-11eb-9927-10b6d09c3437.png)
+![image](https://user-images.githubusercontent.com/61224872/111307929-08c04700-8695-11eb-9f7d-c34fc9047202.png)
+
+里面记录了T1和T2对象的信息和它的地址，我们之前说这两个对象放在了堆中，怎么证明呢？此时再去查看堆上的信息，通过Heap parameters
+
+![image](https://user-images.githubusercontent.com/61224872/111308109-3f965d00-8695-11eb-92d2-e719c3aa337b.png)
+
+我们可以看到堆上新生代(eden区的连续地址，from和to的连续地址)和老年代的连续地址，此时我们可以发现之前的T1和T2的地址正好在eden区地址内，这就说明了我们创建的对象在堆中
+
 
 
 
