@@ -6,6 +6,8 @@
   - [本地方法栈](#本地方法栈)
   - [方法区](#方法区)
   - [Java堆](#Java堆)
+  - [从底层深入理解运行时数据区](#从底层深入理解运行时数据区)
+
 # JVM与操作系统的关系
 * 什么是JVM
 
@@ -167,7 +169,40 @@ Java堆中存储着对象实例和数组
 
 可能有人会问为什么方法区和堆中存储的都是共享的数据，为什么要分开呢？因为堆中存储的对象实例和数组都是要被频繁回收的，所以保持不变的和回收难度大的放在了方法区，经常创建和回收的放在了堆，便于垃圾回收的高效
 
+# 从底层深入理解运行时数据区
+我们先来看一段代码
+```java
+public class JVMObject {
+    public final static String MAN_TYPE = "man"; 
+    public static String WOMAN_TYPE = "woman";  
 
+    public static void  main(String[] args)throws Exception {//栈帧
+        Teacher T1 = new Teacher();
+        T1.setName("Mark");
+        T1.setSexType(MAN_TYPE);
+        T1.setAge(36);
+        for (int i=0;i<15;i++){//进行15次垃圾回收
+            System.gc();//垃圾回收
+        }
+        Teacher T2 = new Teacher();
+        T2.setName("King");
+        T2.setSexType(MAN_TYPE);
+        T2.setAge(18);
+        Thread.sleep(Integer.MAX_VALUE);//线程休眠很久很久
+    }
+}
+
+class Teacher{
+    String name;
+    String sexType;
+    int age;//堆
+
+    ......//省略set和get
+}
+```
+上述代码在执行时是如何一步一步的通过JVM进入到运行时数据区的呢？
+
+1. 首先
 
 
 
