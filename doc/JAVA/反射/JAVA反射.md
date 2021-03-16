@@ -7,6 +7,7 @@
 - [7.反射获取泛型真实类型](#反射获取泛型真实类型)
 - [8.实操之通过注解和反射实现findViewById](#实操之通过注解和反射实现findViewById)
 - [9.实操之通过注解和反射实现getIntent](#实操之通过注解和反射实现getIntent)
+- [10.实操之通过注解反射和动态代理实现onClick](#实操之通过注解反射和动态代理实现onClick)
 
 # 什么是反射
 
@@ -623,3 +624,133 @@ public static void injectIntent(Activity activity) {
     }
   }
   ```
+  
+  # 实操之通过注解反射和动态代理实现onClick
+  
+  我们在平时的使用中是
+  ```java
+  view.setOnClickListener(new View.OnClickListener() {...});
+  ```
+  如果我们要通过注解，反射和动态代理实现，则要知道几个点
+  1. 我们要通过反射的形式自动帮view去调用setOnClickListener(View.OnClickListener())这个方法，同时要代理View.OnClickListener()来执行我们的方法
+  2. 由于动态代理只能代理接口，所以我们要添加自己的注解来找到view，以及它调用的setOnClickListener和View.OnClickListener
+  3. 拿到方法名setOnClickListener和参数View.OnClickListener，就可以通过view反射找到点击的方法，这时候就可以动态代理
+
+  现在开始码代码:
+  1. 添加两个注解
+  ```java
+  
+  //添加第一个元注解
+  @Target(ElementType.ANNOTATION_TYPE)
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface EventType {
+    Class listenerType();//用于找到View.OnClickListener().class或者长点击的接口类
+    String listenerSetter();//用于找到点击事件的方法名
+  }
+  
+  //添加第二个注解
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.RUNTIME)
+  @EventType(listenerType = View.OnClickListener.class, listenerSetter = "setOnClickListener")
+  public @interface OnClick {
+    int[] value();//该注解可以使用多个id
+  }
+  
+  ```
+  
+  2. 在Activity中使用注解
+  ```java
+  @OnClick({R.id.btn1, R.id.btn2})
+  public void click(View view) {
+        switch (view.getId()) {
+            case R.id.btn1:
+                Log.i(TAG, "click: 按钮1");
+                break;
+            case R.id.btn2:
+                Log.i(TAG, "click: 按钮2");
+                break;
+        }
+  }
+  ```
+  
+  3. 增加工具类
+  ```java
+  public class InjectUtils {
+    public static void injectEvent(Activity activity) {
+        Class<? extends Activity> activityClass = activity.getClass();
+        Method[] declaredMethods = activityClass.getDeclaredMethods();
+        for (Method method : declaredMethods) {
+            //获得方法上所有注解
+            Annotation[] annotations = method.getAnnotations();
+            for (Annotation annotation : annotations) {
+                //注解类型
+                Class<? extends Annotation> annotationType = annotation.annotationType();
+                //只找符合我们自定义的元注解
+                if (annotationType.isAnnotationPresent(EventType.class)) {
+                    EventType eventType = annotationType.getAnnotation(EventType.class);
+                    // 通过我们的注解元注解拿到注解中的接口，它就是我们要动态代理的接口对象 比如：view.OnClickListener.class
+                    Class listenerType = eventType.listenerType();
+                    // 通过我们的注解元注解拿到注解中的方法名，它是用于我们自动帮view注册用，比如setOnClickListener
+                    String listenerSetter = eventType.listenerSetter();
+
+                    try {
+                        // 通过元注解拿到注解方法
+                        Method valueMethod = annotationType.getDeclaredMethod("value");
+                        // 拿到方法注解的参数，也就是view的id
+                        int[] viewIds = (int[]) valueMethod.invoke(annotation);
+
+                        method.setAccessible(true);
+                        
+                        //创建我们自己的InvocationHandler，用于接收动态代理的回调，等于是我们后面调用view的点击事件，它的参数回调会进入到我们的方法
+                        ListenerInvocationHandler<Activity> handler = new ListenerInvocationHandler(activity, method);
+                        
+                        //创建动态代理，代理view点击事件的回调
+                        Object listenerProxy = Proxy.newProxyInstance(listenerType.getClassLoader(),
+                                new Class[]{listenerType}, handler);
+                        // 遍历注解的值
+                        for (int viewId : viewIds) {
+                            // 获得当前activity的view（赋值）
+                            View view = activity.findViewById(viewId);
+                            
+                            //通过方法名和参数拿到view中点击事件的方法，因为通过Activity无法找到View内部
+                            Method setter = view.getClass().getMethod(listenerSetter, listenerType);
+                            // 执行view的该方法，相当于自动帮它去调用注册点击事件，同时回调方法就是我们的动态代理方法
+                            setter.invoke(view, listenerProxy); 
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+        }
+    }
+
+    /**
+     * 还可能在自定义view注入，所以是泛型： T = Activity/View
+     *
+     * @param <T>
+     */
+    static class ListenerInvocationHandler<T> implements InvocationHandler {
+
+        private Method method;
+        private T target;
+
+        public ListenerInvocationHandler(T target, Method method) {
+            this.target = target;
+            this.method = method;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            return this.method.invoke(target, args);
+        }
+    }
+  }
+  ```
+  
+  4. 使用:
+  ```java
+  InjectUtils.injectEvent(this);
+  ```
+
