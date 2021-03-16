@@ -48,4 +48,46 @@
 线程共享: 不受线程影响的有方法区和堆
 
 下面来详细介绍下运行时数据区中的东西:
-1. 程序计数器 : 在多线程的环境下，程序计数器负责指向当前线程正在执行的字节码指令的地址
+* 程序计数器 : 
+  * 在多线程的环境下，程序计数器负责指向当前线程正在执行的字节码指令的地址
+  * 为了方便理解，我们直接上代码
+  ```java
+  public class Test {
+    public Test() {
+    }
+
+    public int work() {
+        int x = 1;
+        int y = 2;
+        int z = (x + y) * 10;
+        return z;
+    }
+
+    public static void main(String[] args) throws Exception {
+        Test test = new Test();
+        test.work();
+    }
+  }
+  ```
+  很简单的一段代码，我们编译下Test类，会在build中生成一个Test.class文件，我们通过javap -c Test.class来看看他的字节码汇编后长什么样:
+  ```java
+  //我们直接看work方法的样子
+  public int work();
+    Code:
+       0: iconst_1
+       1: istore_1
+       2: iconst_2
+       3: istore_2
+       4: iload_1
+       5: iload_2
+       6: iadd
+       7: bipush        10   //大部分指令的偏移量是1，但是如果偏移量过大，就不会是1，比如此时跳过了8
+       9: imul
+      10: istore_3
+      11: iload_3
+      12: ireturn
+  ```
+  我们可以看到我们的程序变成字节码后，有一个Code行号，会按照Code行号从0~12一行一行执行后面的指令，Code表示针对work方法体的偏移量，大体上可以理解为程序计数器记录的地址
+  * 可能有人会问了，为什么需要程序计数器？
+  因为操作系统的时间轮转机制，程序计数器是针对当前线程而言，如果时间轮转机制将当前线程挂起，当线程再次获得时间片后，程序计数器就保证了下次该执行哪一条指令
+
