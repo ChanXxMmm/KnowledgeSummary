@@ -176,7 +176,7 @@ public class JVMObject {
     public final static String MAN_TYPE = "man"; 
     public static String WOMAN_TYPE = "woman";  
 
-    public static void  main(String[] args)throws Exception {//栈帧
+    public static void  main(String[] args)throws Exception {
         Teacher T1 = new Teacher();
         T1.setName("Mark");
         T1.setSexType(MAN_TYPE);
@@ -195,14 +195,27 @@ public class JVMObject {
 class Teacher{
     String name;
     String sexType;
-    int age;//堆
+    int age;
 
     ......//省略set和get
 }
 ```
 上述代码在执行时是如何一步一步的通过JVM进入到运行时数据区的呢？
 
-1. 首先
+1. 首先申请内存: 栈内存，堆内存，方法区内存
+2. 通过类加载器加载JVMObject.class和Teacher.class，加载到运行时数据区的方法区
+3. 方法区加载类后进行拆分，将MAN_TYPE常量和WOMAN_TYPE静态变量放到方法区
+4. main方法跑起来后，在虚拟机栈中创建main进程的虚拟机栈，同时在该虚拟机栈中压入main方法的栈帧
+5. 执行Teacher T1 = new Teacher()，会在堆Eden区中创建一个T1的Teacher对象，同时在栈帧中的局部变量表中有一个T1的引用
+6. 执行set方法: 在栈帧中的操作数栈中不断的入栈出栈
+7. 执行15次gc操作，此时垃圾回收器主要对堆进行回收，堆中的T1经历过15次GC后进入到老年代，为什么是15次？在后面的垃圾回收机制中会介绍
+8. 执行Teacher T2 = new Teacher()，会在堆Eden区中创建一个T2的Teacher对象，同时在栈帧中的局部变量表中有一个T2的引用
+9. 执行set方法: 在栈帧中的操作数栈中不断的入栈出栈
+
+此时JVM的运行时数据区的效果如下图
+![image](https://user-images.githubusercontent.com/61224872/111302764-bda33580-868e-11eb-9b12-6b65a8bbaf59.png)
+
+
 
 
 
