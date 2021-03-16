@@ -244,7 +244,7 @@ sudo java -cp ,:/Library/Java/JavaVirtualMachines/jdk1.8.0_261.jdk/Contents/Home
 
 ![image](https://user-images.githubusercontent.com/61224872/111308109-3f965d00-8695-11eb-92d2-e719c3aa337b.png)
 
-我们可以看到堆上新生代(eden区的连续地址，from和to的连续地址)和老年代的连续地址，此时我们可以发现之前的T1和T2的地址正好在eden区地址内，这就说明了我们创建的对象在堆中
+我们可以看到堆上新生代(eden区的连续地址，from和to的连续地址)和老年代的连续地址，此时我们可以发现之前的T1在eden区地址内，T2在老年代地址内，这就说明了我们创建的对象在堆中
 
 
 
