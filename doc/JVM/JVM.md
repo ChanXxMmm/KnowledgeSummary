@@ -8,6 +8,7 @@
   - [Java堆](#Java堆)
   - [从底层深入理解运行时数据区](#从底层深入理解运行时数据区)
   - [内存溢出](#内存溢出)
+  - [虚拟机优化技术](#虚拟机优化技术)
   
 # JVM与操作系统的关系
 * 什么是JVM
@@ -260,10 +261,56 @@ sudo java -cp ,:/Library/Java/JavaVirtualMachines/jdk1.8.0_261.jdk/Contents/Home
 4. 本机直接内存溢出
   * 因为直接内存是我们在使用NIO的时候会用到，所以我们限制直接内存大小100M，直接通过ByteBuffer申请128M内存，造成OOM
 
+如何解决: 通过异常日志找到具体是什么溢出，然后再去检查我们的代码(有点废话)
+
+# 虚拟机优化技术
+1. 编译优化技术: 方法内联
+
+直接看代码，比如我们有这么一种情况
+```java
+public static void main(String[] args){
+  boolean x = max(1,2);
+}
+public static boolean max(int a,int b){
+  return a>b;
+}
+```
+我们可以看到main调用max方法会涉及到max栈帧的入栈和出栈，在编译的时候发现如果参数1和2是固定的，就会对其进行优化
+```java
+public static void main(String[] args){
+  boolean x = 1>2;
+}
+public static boolean max(int a,int b){
+  return a>b;
+}
+```
+所以方法内联就是将目标方法的代码原封不动的复制到调用方法中，避免真实的方法调用，减少一次栈帧入栈
+
+2. 栈的优化技术: 栈帧之间的数据共享
+
+两个不同的栈帧的内存区域是独立的，但是大部分的JVM在实现中会进行一些优化，使得两个栈帧出现一部分重叠。（主要体现在方法中有参数传递的情况），让下面栈帧的操作数栈和上面栈帧的部分局部变量重叠在一起，这样做不但节约了一部分空间，更加重要的是在进行方法调用时就可以直接公用一部分数据，无需进行额外的参数复制传递了。
+
+![image](https://user-images.githubusercontent.com/61224872/111314851-c0a52280-869c-11eb-9f7b-ba9b5a036ce0.png)
 
 
+我们可以看段代码
+```java
+public class JVMStack{
+  public static void main(String[] args){
+    JVMStack jvmstack = new JVMStack();
+    jvmstack.work(10);
+  }
+  public static int work(int x){
+    int z = (x + 5)*10;
+    Thread.sleep(Integer.MAX_VALUE);
+    return z;
+  }
+}
+```
+我们可以看到10放入了main栈帧中操作数栈中，之后又将它传递给了work栈帧，它会在work栈帧中的局部变量表中，此时我们可以通过HSDB查看
+
+![image](https://user-images.githubusercontent.com/61224872/111314399-555b5080-869c-11eb-9060-2fe252829305.png)
 
 
-
-
+我们可以看到紫色的区域expression stack就是main栈帧的操作数栈，而蓝色一直到黑色的就是work栈帧，其中蓝色最下方的黑色locals area就是work栈帧的局部变量表，此时我们可以看到有一块重合的地址，这个地址就是共享的数据地址
 
