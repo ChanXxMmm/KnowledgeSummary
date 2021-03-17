@@ -57,7 +57,7 @@ public class Test{
 ```
 * @Retention:定义注解所保留的级别，SOURCE<CLASS<RUNTIME
 ```java
-@Retention(RetentionPolicy.SOURCE)  //标记的注解仅保留在源码级别，冰杯编译器忽略
+@Retention(RetentionPolicy.SOURCE)  //标记的注解仅保留在源码级别，并被编译器忽略
 @Retention(RetentionPolicy.CLASS)  //标记的注解在编译时由编译器保留，但Java虚拟机忽略
 @Retention(RetentionPolicy.RUNTIME)  //标记的注解由JVM保留，因此运行时环境可以使用它
 ```
