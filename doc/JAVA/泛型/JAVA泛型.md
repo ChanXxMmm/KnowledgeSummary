@@ -226,7 +226,7 @@ public class MyClass {
 
 ```java
 public static <T> T min(T a,T b){
-        if (a.compareTo(b)>0) return a; else return b;
+        if (a.compareTo(b)<0) return a; else return b;
 }
 ```
 此段代码有问题：由于定义的泛型T不知道是什么类型的，所以无法保证他有compareTo方法。
@@ -235,7 +235,7 @@ public static <T> T min(T a,T b){
 ```java
 //只有继承的父类或者自己实现了Comparable接口才可以
 public static <T extends Comparable> T min(T a,T b){
-        if (a.compareTo(b)>0) return a; else return b;
+        if (a.compareTo(b)<0) return a; else return b;
 }
 ```
 写法上<T extends String>也支持多个泛型和extends多个接口或者类，比如<K extends String,V extends ArrayList&Comparable>,这时候类必须写在接口前面且类只能有一个，同时不光可以在泛型方法中使用，还可以在泛型类上使用
@@ -283,7 +283,7 @@ public class Test<T>{
 ```java
 public class Test<T>{
     public static void main(String[] args) {
-        Test<Double> t = new Test();
+        Test<Double> test = new Test();
         //不允许
         if(test instanceof Test<Double>){}
         //不允许
