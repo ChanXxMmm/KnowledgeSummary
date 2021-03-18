@@ -15,11 +15,28 @@ JAVA相关
 |Json解析|||
 |IO|||
 
-
 JVM相关
  知识点  |链接
  ---| ---
 |JVM | [详情](./doc/JVM/JVM.md)
+
+Android相关
+ 知识点  ||链接
+ ---| ---|---
+|RxJava解析  |||
+|组件化 ||
+|插件化 ||
+|热修复 ||
+|OkHttp解析 ||
+|Retrofit解析 ||
+|Glide解析 ||
+|Dagger2解析 ||
+|JetPack ||
+| |LifeCycle解析|
+| |LifeData解析|
+| |DataBinding解析|
+
+
 
 设计模式相关
  知识点  |链接
