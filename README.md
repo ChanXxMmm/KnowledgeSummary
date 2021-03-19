@@ -37,6 +37,13 @@
   NestedScrollView解析 |
   CoordinatorLayout解析 |
  
+ # 软加架构模式
+
+  知识点  |链接
+ ---| ---
+ MVC | 
+  MVP | 
+  MVVM |
 * Framework层相关
 
  知识点  |链接
