@@ -37,7 +37,7 @@
   NestedScrollView解析 |
   CoordinatorLayout解析 |
  
- # 软件架构模式
+ # 软件架构相关
 
   知识点  |链接
  ---| ---
