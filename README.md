@@ -42,7 +42,7 @@
   知识点  |链接
  ---| ---
  MVC |  [详情](./doc/Android/软件架构/MVC.md)
-  MVP | 
+  MVP |  [详情](./doc/Android/软件架构/MVP.md)
   MVVM |
   
 * Framework层相关
