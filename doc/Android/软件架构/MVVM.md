@@ -1,6 +1,6 @@
 - [1.MVVM](#MVVM)
 - [2.MVVM相比MVP](#MVVM相比MVP)
-
+- [3.应用场景](#应用场景)
 # MVVM
 
 我们如果知道[MVP](./MVP.md)的问题，那么我们就要对[MVP](./MVP.md)中的demo进行近一步优化(使用[DataBinding](.doc/Android/Jetpack/DataBinding/DataBinding.md)，没有接触过得请去[DataBinding](.doc/Android/Jetpack/DataBinding/DataBinding.md)了解
@@ -42,8 +42,13 @@ public class MainActivity extends AppCompatActivity {
 
 * 数据(Model): 数据+对数据进行的操作(不依赖Activity的操作) 
 * 视图(View) : xml，Activity 
-* 逻辑(Controller): MyPresenter
+* 逻辑(Controller): viewmodel
 
 # MVVM相比MVP
-进步: Activity只剩了下View，presenter承担了view和model之间的交互，对视图数据逻辑的分离是清晰地，满足了单一职责原则
-缺陷: 引入了接口，导致方法增多，每增加一个方法要改几个地方
+进步: 基于MVP增加了viewmodel
+缺陷: xml中包含代码
+
+
+# 应用场景
+
+核心，复杂，需求变更快页面
