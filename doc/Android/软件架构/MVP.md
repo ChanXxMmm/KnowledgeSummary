@@ -1,6 +1,11 @@
 - [1.MVP](#MVP)
-
-在了解MVP前，如果什么是MVC还不清楚的请先看看[MVC](./MVC.md)
+- [2.MVP相比MVC](#MVP相比MVC)
 
 # MVP
 
+我们如果知道[MVC](./MVC.md)的问题，那么我们就要对[MVC](./MVC.md)中的demo进行近一步优化
+
+
+# MVP相比MVC
+* 进步
+* 缺陷
