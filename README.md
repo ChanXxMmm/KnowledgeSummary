@@ -70,7 +70,7 @@
 |JetPack ||
 | |LifeCycle解析|
 | |LifeData解析|
-| |DataBinding解析|[详情](.doc/Andriod/Jetpack/DataBinding/DataBinding.md)
+| |DataBinding解析|[详情](.doc/Android/Jetpack/DataBinding/DataBinding.md)
 
 * 性能优化相关
 
