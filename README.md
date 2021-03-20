@@ -37,11 +37,11 @@
   NestedScrollView解析 |
   CoordinatorLayout解析 |
  
- # 软件架构相关
+ * 软件架构相关
 
   知识点  |链接
  ---| ---
- MVC | 
+ MVC |  [详情](./doc/Android/软件架构/MVC.md)
   MVP | 
   MVVM |
   
