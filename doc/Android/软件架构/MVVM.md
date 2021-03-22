@@ -3,7 +3,7 @@
 - [3.应用场景](#应用场景)
 # MVVM
 
-我们如果知道[MVP](./MVP.md)的问题，那么我们就要对[MVP](./MVP.md)中的demo进行近一步优化(使用[DataBinding](.doc/Android/Jetpack/DataBinding/DataBinding.md)，没有接触过得请去[DataBinding](.doc/Android/Jetpack/DataBinding/DataBinding.md)了解
+我们如果知道[MVP](./MVP.md)的问题，那么我们就要对[MVP](./MVP.md)中的demo进行近一步优化(使用[DataBinding](../Jetpack/DataBinding/DataBinding.md)，没有接触过得请去[DataBinding](../Jetpack/DataBinding/DataBinding.md)了解
 ```java
 //viewmodel包下MyViewModel.class
 public class MyViewModel {
