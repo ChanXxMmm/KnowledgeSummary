@@ -627,7 +627,7 @@ public static void injectIntent(Activity activity) {
   
   # 实操之通过注解反射和动态代理实现onClick
   
-  对动态代理不熟悉的可以去[代理模式](./Docs/设计模式/代理模式.md)学习
+  对动态代理不熟悉的可以去[代理模式](./doc/设计模式/代理模式.md)学习
 
   我们在平时的使用中是
   ```java
