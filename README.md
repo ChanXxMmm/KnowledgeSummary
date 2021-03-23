@@ -69,16 +69,27 @@
 |Retrofit解析 ||
 |Glide解析 ||
 |Dagger2解析 ||
+|LeakCanary解析 ||
 |JetPack ||
 | |LifeCycle解析|
 | |LifeData解析|
 | |DataBinding解析|[详情](./doc/Android/Jetpack/DataBinding/DataBinding.md)
+| |Room解析|
+| |WorkManager解析|
 
 * 性能优化相关
 
- 知识点  ||链接
- ---| ---|---
-
+ 知识点  |链接
+ ---| ---
+启动速度优化 |
+内存优化 |
+页面显示速度优化 |
+电量优化 |
+网络优化 |
+ANR优化 |
+崩溃优化 |
+APK大小优化 |
+加固 |
 
 * 设计模式相关
 
