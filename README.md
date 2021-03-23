@@ -50,6 +50,8 @@
 
  知识点  |链接
  ---| ---
+   |AsyncTask解析  ||
+   |SharePreferences解析  ||
   |Context解析  ||
   |Fragment解析  ||
  |Handler解析  ||
