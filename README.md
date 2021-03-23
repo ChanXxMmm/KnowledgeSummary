@@ -20,6 +20,7 @@
  知识点  |链接
  ---| ---
 |HashMap | [详情](./doc/JAVA/数据结构/HashMap.md)
+|阻塞队列 | [详情](./doc/JAVA/数据结构/阻塞队列.md)
 
 * JVM相关
 
