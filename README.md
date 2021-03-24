@@ -77,7 +77,10 @@
 | |LifeCycle解析|[详情](./doc/Android/Jetpack/LifeCycle/LifeCycle.md)
 | |LifeData解析|
 | |DataBinding解析|[详情](./doc/Android/Jetpack/DataBinding/DataBinding.md)
+| |ViewModel解析|
 | |Room解析|
+| |Paging解析|
+| |Navigation解析|
 | |WorkManager解析|
 
 * 性能优化相关
