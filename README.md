@@ -75,7 +75,7 @@
 |LeakCanary解析 ||
 |JetPack ||
 | |LifeCycle解析|
-| |LifeData解析|
+| |LifeData解析|[详情](./doc/Android/Jetpack/LifeCycle/LifeCycle.md)
 | |DataBinding解析|[详情](./doc/Android/Jetpack/DataBinding/DataBinding.md)
 | |Room解析|
 | |WorkManager解析|
