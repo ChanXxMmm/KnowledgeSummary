@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 //LifecycleRegistry.addObserver
 @Override
     public void addObserver(@NonNull LifecycleObserver observer) {
-        //初始mState的状态，枚举State声明了5中状态，后面会去说，此时应该是INITIALIZED
+        //初始mState的状态，枚举State声明了5种状态，后面会去说，此时应该是INITIALIZED
         State initialState = mState == DESTROYED ? DESTROYED : INITIALIZED;
         
         //将观察者observer和初始状态包装为ObserverWithState
@@ -122,6 +122,9 @@ CallbackInfo getInfo(Class<?> klass) {
 //ClassesInfoCache.sInstance.createInfo
 private CallbackInfo createInfo(Class<?> klass, @Nullable Method[] declaredMethods) {
         //......
+        //定义一个集合用于保存观察者方法的信息
+        Map<MethodReference, Lifecycle.Event> handlerToEvent = new HashMap<>();
+        //......
 
         //通过反射获取观察者中所有声明的方法
         Method[] methods = declaredMethods != null ? declaredMethods : getDeclaredMethods(klass);
@@ -148,16 +151,181 @@ private CallbackInfo createInfo(Class<?> klass, @Nullable Method[] declaredMetho
 
             //......
             
-            //将该方法与callType保存到MethodReference对象中
-            
-            
+            //将该方法，callType保存到MethodReference对象中
             MethodReference methodReference = new MethodReference(callType, method);
+            
+            //将methodReference，方法参数等信息保存到集合中
             verifyAndPutHandler(handlerToEvent, methodReference, event, klass);
         }
+        //将集合包装为CallbackInfo并返回
         CallbackInfo info = new CallbackInfo(handlerToEvent);
         mCallbackMap.put(klass, info);
         mHasLifecycleMethods.put(klass, hasLifecycleMethods);
         return info;
 }
- 
 ```
+好了，此时我们可以知道绑定的时候大部分工作就是将观察者的事件方法和方法的信息保存到了一个集合中，那什么时候才会触发呢？
+
+我们知道我们的Activity继承自AppCompatActivity，我们去它的父类ComponentActivity中看它的onCreat方法
+```java
+//ComponentActivity.onCreat
+  @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //...
+        ReportFragment.injectIfNeededIn(this);
+        //...
+}
+
+//ReportFragment.injectIfNeededIn
+public static void injectIfNeededIn(Activity activity) {
+        android.app.FragmentManager manager = activity.getFragmentManager();
+        if (manager.findFragmentByTag(REPORT_FRAGMENT_TAG) == null) {
+            manager.beginTransaction().add(new ReportFragment(), REPORT_FRAGMENT_TAG).commit();
+            // Hopefully, we are the first to make a transaction.
+            manager.executePendingTransactions();
+        }
+}
+```
+我们可以看到其实就是创建了一个空白的Fragment来监听生命周期，我们去看下ReportFragment的生命周期
+```java
+@Override
+    public void onStart() {
+        super.onStart();
+        dispatchStart(mProcessListener);
+        //其他生命周期一样，都会调用dispatch
+        dispatch(Lifecycle.Event.ON_START);
+}
+
+private void dispatch(Lifecycle.Event event) {
+        Activity activity = getActivity();
+        //...
+
+        //我们的Activity都是继承自ComponentActivity，而ComponentActivity又实现了LifecycleOwner
+        if (activity instanceof LifecycleOwner) {
+            Lifecycle lifecycle = ((LifecycleOwner) activity).getLifecycle();
+            if (lifecycle instanceof LifecycleRegistry) {
+                //此时给到LifecycleRegistry的handleLifecycleEvent中
+                ((LifecycleRegistry) lifecycle).handleLifecycleEvent(event);
+            }
+        }
+}
+
+//LifecycleRegistry.handleLifecycleEvent
+public void handleLifecycleEvent(@NonNull Lifecycle.Event event) {
+        //根据事件获取下一个状态
+        State next = getStateAfter(event);
+        
+        //移动到下一个状态
+        moveToState(next);
+}
+```
+我们此时去看看怎么获取的下一个状态
+```
+static State getStateAfter(Event event) {
+        switch (event) {
+            case ON_CREATE:
+            case ON_STOP:
+                return CREATED;
+            case ON_START:
+            case ON_PAUSE:
+                return STARTED;
+            case ON_RESUME:
+                return RESUMED;
+            case ON_DESTROY:
+                return DESTROYED;
+            case ON_ANY:
+                break;
+        }
+        throw new IllegalArgumentException("Unexpected event value " + event);
+    }
+```
+我们可以看到如果生命周期是
+* ON_CREATE和ON_STOP: 它们下一个状态就是CREATED
+* ON_START和ON_PAUSE: 它们下一个状态就是STARTED
+* ON_RESUME: 它下一个状态就是RESUMED
+* ON_DESTROY: 它下一个状态就是DESTROYED
+我们第一次初始化状态的时候说的五种状态就是这个
+
+我们再来看看移动到下一个状态
+```
+ private void moveToState(State next) {
+        if (mState == next) {
+            return;
+        }
+        mState = next;
+        //...
+        mHandlingEvent = true;
+        sync();
+        mHandlingEvent = false;
+}
+```
+![image](https://user-images.githubusercontent.com/61224872/112408427-ba750d00-8d52-11eb-8de8-b94638742b01.png)
+根据上图可以看到mState的取值是根据生命周期发生变化时而变化,此时我们进入sync方法
+```java
+private void sync() {
+        LifecycleOwner lifecycleOwner = mLifecycleOwner.get();
+        //...
+        
+        //如果已经同步，则跳出循环
+        while (!isSynced()) {
+            mNewEventOccurred = false;
+            
+            //由于集合中保存着观察者的状态，所以根据观察者的状态与下一个状态进行比较，是往前走还是往后走
+            if (mState.compareTo(mObserverMap.eldest().getValue().mState) < 0) {
+                //满足往前走，则进入该方法
+                backwardPass(lifecycleOwner);
+            }
+            Entry<LifecycleObserver, ObserverWithState> newest = mObserverMap.newest();
+            if (!mNewEventOccurred && newest != null
+                    && mState.compareTo(newest.getValue().mState) > 0) {
+                //满足往后走，则进入该方法
+                forwardPass(lifecycleOwner);
+            }
+        }
+        mNewEventOccurred = false;
+}
+
+//往左和往右的逻辑差不多，所以我们只看一看往后走
+private void forwardPass(LifecycleOwner lifecycleOwner) {
+
+        //找到所有的观察者
+        Iterator<Entry<LifecycleObserver, ObserverWithState>> ascendingIterator =
+                mObserverMap.iteratorWithAdditions();
+        
+        while (ascendingIterator.hasNext() && !mNewEventOccurred) {
+        
+            //由于在绑定的时候，已经将观察者的状态进行绑定，所以此时取出
+            Entry<LifecycleObserver, ObserverWithState> entry = ascendingIterator.next();
+            ObserverWithState observer = entry.getValue();
+            while ((observer.mState.compareTo(mState) < 0 && !mNewEventOccurred
+                    && mObserverMap.contains(entry.getKey()))) {
+                pushParentState(observer.mState);
+                
+                //进行事件分发
+                observer.dispatchEvent(lifecycleOwner, upEvent(observer.mState));
+                popParentState();
+            }
+        }
+}
+
+//ObserverWithState.dispatchEvent
+void dispatchEvent(LifecycleOwner owner, Event event) {
+            State newState = getStateAfter(event);
+            mState = min(mState, newState);
+            
+            //之前绑定的时候，mLifecycleObserver就已经通过反射保存着观察者对应生命周期的方法
+            mLifecycleObserver.onStateChanged(owner, event);
+            mState = newState;
+}
+
+//ReflectiveGenericLifecycleObserver.onStateChanged
+@Override
+public void onStateChanged(LifecycleOwner source, Event event) {
+        //ReflectiveGenericLifecycleObserver中的CallbackInfo中存着方法信息，直接通过反射进行回调
+        mInfo.invokeCallbacks(source, event, mWrapped);
+}
+```
+
+
+
