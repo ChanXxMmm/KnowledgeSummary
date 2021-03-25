@@ -261,7 +261,9 @@ static State getStateAfter(Event event) {
 }
 ```
 ![image](https://user-images.githubusercontent.com/61224872/112408427-ba750d00-8d52-11eb-8de8-b94638742b01.png)
-根据上图可以看到mState的取值是根据生命周期发生变化时而变化,此时我们进入sync方法
+根据上图可以看到可以分为启动过程和销毁过程，mState的取值是根据生命周期发生变化时而变化,比如Activity执行到了OnCreat，那么通过状态可以知道从初始状态到CREATED，通过下面的同步方法，就可以知道观察者是启动过程，那么它的onCreat就会被调用
+
+此时我们进入sync方法
 ```java
 private void sync() {
         LifecycleOwner lifecycleOwner = mLifecycleOwner.get();
