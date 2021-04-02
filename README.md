@@ -64,7 +64,7 @@
 
  知识点  ||链接
  ---| ---|---
- |类加载机制|[详情](doc/Android/Android虚拟机与类加载机制/Android虚拟机与类加载机制.md)
+ |Android虚拟机与类加载机制||[详情](doc/Android/Android虚拟机与类加载机制/Android虚拟机与类加载机制.md)
 |RxJava解析  ||
 |组件化 ||[详情](./doc/Android/组件化/组件化.md)
 |插件化 ||[详情](./doc/Android/插件化/插件化.md)
