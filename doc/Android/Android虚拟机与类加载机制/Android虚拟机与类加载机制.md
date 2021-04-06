@@ -41,22 +41,26 @@ protected Class<?> loadClass(String name, boolean resolve)
                 try {
                     //由于我们都是从PathClassLoader开始，而PathClassLoader的parent就是BootClassLoader
                     if (parent != null) {
-                        //BootClassLoader
+                        //BootClassLoader尝试从framework层加载
                         c = parent.loadClass(name, false);
                     } else {
                         c = findBootstrapClassOrNull(name);
                     }
                 } catch (ClassNotFoundException e) {
-                    // ClassNotFoundException thrown if class not found
-                    // from the non-null parent class loader
                 }
 
                 if (c == null) {
-                    // If still not found, then invoke findClass in order
-                    // to find the class.
+                    // 如果上面都没找到，则自己找，这就是双亲委派机制
+                    // 内部就是从DexPathList中寻找，在初始化classloader的时候，对其初始化
+                    // 初始化就是将dex进行分组，保存到Elements数组中，一个dex对应一个Element
+                    // 所以从DexPathList中寻找就是遍历这个Elements数组，看Element内部的dexFile是否满足
                     c = findClass(name);
                 }
             }
             return c;
 }
 ```
+* 为什么使用双亲委派机制
+ * 安全: 防止核心api被篡改
+ * 避免重复加载: 如果父类已经加载，子类就没有必要在加载一遍
+
