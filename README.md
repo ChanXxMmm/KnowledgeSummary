@@ -38,6 +38,16 @@
   NestedScrollView解析 |
   CoordinatorLayout解析 |
  
+ * Android相关
+ 知识点  |链接
+ ---| ---
+   |AsyncTask解析  ||
+   |SharePreferences解析  ||
+  |Context解析  ||
+  |Fragment解析  ||
+  |ViewPager解析  ||
+  |ViewPager2解析  ||
+  |Recyclerview解析  ||
  * 软件架构相关
 
   知识点  |链接
@@ -50,10 +60,6 @@
 
  知识点  |链接
  ---| ---
-   |AsyncTask解析  ||
-   |SharePreferences解析  ||
-  |Context解析  ||
-  |Fragment解析  ||
  |Handler解析  ||
   |Binder原理  ||
  |AMS  ||
