@@ -76,7 +76,7 @@
 |RxJava解析  ||
 |组件化 ||[详情](./doc/Android/组件化/组件化.md)
 |插件化 ||[详情](./doc/Android/插件化/插件化.md)
-|热修复 ||
+|热修复  ||[详情](./doc/Android/热修复/热修复.md)
 |OkHttp解析 ||
 |Retrofit解析 ||
 |Glide解析 ||
